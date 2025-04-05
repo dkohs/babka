@@ -1,0 +1,14 @@
+Table Activity Lists
+
+List Name: String
+Associated Activities: [Activities ID]
+
+Table Activities
+
+Activity Name
+Due Date: Date OBJ
+Log: [{
+    dates: Date
+    comment: String
+}]
+Activity Difficulty: Int Score
