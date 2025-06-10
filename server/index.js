@@ -1,14 +1,14 @@
-require('dotenv').config();
+require("dotenv").config();
 
 const express = require("express");
 const { connection } = require("./db/connection");
-const {userRoutes} = require("./routes/userRoutes");
-const {authRoutes} = require("./routes/authRoutes");
+const { userRoutes } = require("./routes/userRoutes");
+const { authRoutes } = require("./routes/authRoutes");
 
 const app = express();
 app.use(express.json());
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 const runServer = async () => {
   try {
@@ -16,7 +16,6 @@ const runServer = async () => {
 
     app.use("/api/users", userRoutes);
     app.use("/api/auth", authRoutes);
-    app.use("/api/activities", activityRoutes)
 
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
@@ -25,6 +24,6 @@ const runServer = async () => {
     console.error("Failed to connect to MongoDB", error);
     process.exit(1);
   }
-}
+};
 
 runServer();
