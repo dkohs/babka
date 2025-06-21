@@ -4,6 +4,7 @@ const express = require("express");
 const { connection } = require("./db/connection");
 const { userRoutes } = require("./routes/userRoutes");
 const { authRoutes } = require("./routes/authRoutes");
+const { mlRoutes } = require("./routes/mlRoutes");
 
 const app = express();
 app.use(express.json());
@@ -16,6 +17,7 @@ const runServer = async () => {
 
     app.use("/api/users", userRoutes);
     app.use("/api/auth", authRoutes);
+    app.use("/api/ml", mlRoutes);
 
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
