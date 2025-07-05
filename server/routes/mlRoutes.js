@@ -67,26 +67,6 @@ function classifySentiment(emotion) {
     "contempt",
     "exhaustion",
   ];
-  const neutralEmotions = [
-    "confusion",
-    "anticipation",
-    "indifference",
-    "interest (neutral)",
-    "uncertainty",
-    "alertness",
-    "acceptance",
-    "neutral",
-    "expectation",
-    "sensory awareness",
-    "calculated",
-    "observant",
-    "passivity",
-    "thoughtfulness",
-    "reflection",
-    "concentration",
-    "inquisitiveness",
-    "objectivity",
-  ];
 
   const emotionLower = emotion.toLowerCase();
 
@@ -94,10 +74,8 @@ function classifySentiment(emotion) {
     return "POSITIVE";
   } else if (negativeEmotions.includes(emotionLower)) {
     return "NEGATIVE";
-  } else if (neutralEmotions.includes(emotionLower)) {
-    return "NEUTRAL";
   } else {
-    return "UNMEASURABLE";
+    return "NEUTRAL";
   }
 }
 
@@ -115,10 +93,16 @@ async function detectEmotion(sentence) {
     );
 
     const result = response.data;
-    if (Array.isArray(result) && result.length > 0) {
-      const topResult = result[0];
+
+    if (
+      Array.isArray(result) &&
+      result.length > 0 &&
+      Array.isArray(result[0]) &&
+      result[0].length > 0
+    ) {
+      const topResult = result[0][0];
       const emotion = topResult.label;
-      const confidence = Math.round(topResult.score * 100 * 10) / 10; 
+      const confidence = Math.round(topResult.score * 100 * 10) / 10;
       return { emotion, confidence };
     }
 
@@ -137,24 +121,6 @@ function preprocessSentence(sentence) {
   return sentence.trim().replace(/\s+/g, " ");
 }
 
-function packageAnalysisData(
-  originalSentence,
-  processedSentence,
-  emotion,
-  confidence,
-  sentiment
-) {
-  return {
-    original_sentence: originalSentence,
-    processed_sentence: processedSentence,
-    emotion: emotion,
-    confidence: confidence,
-    sentiment: sentiment,
-    timestamp: new Date().toISOString(),
-    analysis_id: generateAnalysisId(),
-  };
-}
-
 function generateAnalysisId() {
   return `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
@@ -166,41 +132,67 @@ router.post("/infer", async (req, res) => {
     if (!sentence) {
       return res.status(400).json({ error: "Sentence is required" });
     }
+    const segments = sentence
+      .split(/(?<=[.!?])\s+| and | but | or |, /i)
+      .filter(Boolean);
 
-    // Pre-process the sentence
-    const processedSentence = preprocessSentence(sentence);
+    const results = [];
 
-    if (!processedSentence) {
-      return res.status(400).json({ error: "Invalid sentence provided" });
+    for (let segment of segments) {
+      const processedSegment = preprocessSentence(segment);
+      if (!processedSegment) continue;
+
+      const { emotion, confidence } = await detectEmotion(processedSegment);
+      if (emotion === "Error") continue;
+
+      const sentiment = classifySentiment(emotion);
+
+      results.push({
+        text: segment.trim(),
+        emotion,
+        confidence,
+        sentiment,
+      });
     }
 
-    // Detect emotion and confidence
-    const { emotion, confidence } = await detectEmotion(processedSentence);
-
-    if (emotion === "Error") {
-      return res.status(500).json({ error: "Failed to analyze emotion" });
+    if (results.length === 0) {
+      return res.status(500).json({ error: "No valid segments analyzed" });
     }
+    const sentimentMap = { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: -1 };
+    const emotionKeyMap = {};
+    let emotionIndex = 0;
 
-    // Detect sentiment
-    const sentiment = classifySentiment(emotion);
+    results.forEach((item) => {
+      if (!(item.emotion in emotionKeyMap)) {
+        emotionKeyMap[item.emotion] = emotionIndex++;
+      }
+    });
 
-    // Package the data payload
-    const analysisData = packageAnalysisData(
-      sentence,
-      processedSentence,
-      emotion,
-      confidence,
-      sentiment
-    );
-
-    // Store the analysis in table (you'll need to implement this based on your database)
-    // Example: await saveAnalysisToDatabase(analysisData);
-
-    console.log("Analysis completed:", analysisData);
+    const timeTrend = results.map((item, index) => ({
+      x: index,
+      y: item.confidence,
+    }));
+    const sentimentVsConfidence = results.map((item) => ({
+      x: sentimentMap[item.sentiment],
+      y: item.confidence,
+    }));
+    const emotionVsConfidence = results.map((item) => ({
+      x: emotionKeyMap[item.emotion],
+      y: item.confidence,
+    }));
 
     res.status(201).json({
       message: "Emotion analysis completed successfully",
-      analysis: analysisData,
+      original_sentence: sentence,
+      analysis: results,
+      regression_data: {
+        time_trend: timeTrend,
+        sentiment_vs_confidence: sentimentVsConfidence,
+        emotion_vs_confidence: emotionVsConfidence,
+        emotion_key: emotionKeyMap,
+      },
+      timestamp: new Date().toISOString(),
+      analysis_id: generateAnalysisId(),
     });
   } catch (err) {
     console.error("Error in emotion analysis:", err);
