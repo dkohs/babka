@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './hooks/AuthContext';
 import HomePage from './components/HomePage';
 import StatsPage from './components/StatsPage';
 import ProfilePage from './components/ProfilePage';
@@ -6,14 +8,36 @@ import FillerPage from './components/FillerPage';
 import EntryForm from './components/EntryForm';
 import SearchScreen from './components/SearchScreen';
 import NavigationBar from './components/NavigationBar';
+import LoginScreen from './components/LoginScreen';
+import SignupScreen from './components/SignupScreen';
 import { dummyEntries } from './utils/data';
 
-export const App = () => {
+const AppContent = () => {
+  const { isAuthenticated, loading } = useAuth();
   const [entries, setEntries] = useState(dummyEntries);
   const [showNewEntry, setShowNewEntry] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
-  const [currentPage, setCurrentPage] = useState('home');
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Router>
+        <Routes>
+          <Route path="/login" element={<LoginScreen />} />
+          <Route path="/signup" element={<SignupScreen />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Router>
+    );
+  }
 
   const handleSaveEntry = (newEntry) => {
     setEntries([newEntry, ...entries]);
@@ -35,27 +59,6 @@ export const App = () => {
   const handleEntryClick = (entry) => {
     setSelectedEntry(entry);
     setShowSearch(false);
-  };
-
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'home':
-        return (
-          <HomePage 
-            entries={entries} 
-            onEntryClick={handleEntryClick}
-            onSearchClick={() => setShowSearch(true)}
-          />
-        );
-      case 'stats':
-        return <StatsPage />;
-      case 'profile':
-        return <ProfilePage />;
-      case 'filler':
-        return <FillerPage />;
-      default:
-        return null;
-    }
   };
 
   if (selectedEntry) {
@@ -90,13 +93,34 @@ export const App = () => {
   }
 
   return (
-    <div style={{ fontFamily: 'Inter, sans-serif' }}>
-      {renderCurrentPage()}
-      <NavigationBar 
-        currentPage={currentPage} 
-        onNavigate={setCurrentPage}
-        onPlusClick={() => setShowNewEntry(true)}
-      />
-    </div>
+    <Router>
+      <div style={{ fontFamily: 'Inter, sans-serif' }}>
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              <HomePage 
+                entries={entries} 
+                onEntryClick={handleEntryClick}
+                onSearchClick={() => setShowSearch(true)}
+              />
+            } 
+          />
+          <Route path="/stats" element={<StatsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/filler" element={<FillerPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <NavigationBar onPlusClick={() => setShowNewEntry(true)} />
+      </div>
+    </Router>
+  );
+};
+
+export const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
