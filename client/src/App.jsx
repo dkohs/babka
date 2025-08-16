@@ -111,7 +111,7 @@ const AppContent = () => {
           <Route path="/filler" element={<FillerPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        <NavigationBar onPlusClick={() => setShowNewEntry(true)} />
+        <NavigationBar onPlusClick={() => setShowNewEntry(true)} onNavigate={() =>{}}/>
       </div>
     </Router>
   );
