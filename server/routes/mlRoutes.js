@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
-const { Journal } = require("../models/Journal");
-const auth = require("../middleware/auth");
+const { Journal } = require("../db/models/journalModel");
+const {auth} = require("../middleware/auth");
 
 const MODELS = {
   EMOTION: "j-hartmann/emotion-english-distilroberta-base",

@@ -1,13 +1,29 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
+
+// Create axios instance with base configuration
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || '',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:4000/api';
+  // Set up axios interceptor to include auth token
+  useEffect(() => {
+    if (token) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete api.defaults.headers.common['Authorization'];
+    }
+  }, [token]);
 
   useEffect(() => {
     if (token) fetchUser();
@@ -16,15 +32,8 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch(`${API_BASE}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      if (response.ok) {
-        setUser(await response.json());
-      } else {
-        logout();
-      }
+      const response = await api.get('/api/auth/me');
+      setUser(response.data);
     } catch (error) {
       logout();
     } finally {
@@ -34,38 +43,25 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-        return { success: true };
-      }
-      return { success: false, error: data.error };
+      const response = await api.post('/api/auth/login', { email, password });
+      const { token: newToken } = response.data;
+      
+      localStorage.setItem('token', newToken);
+      setToken(newToken);
+      return { success: true };
     } catch (error) {
-      return { success: false, error: 'Network error' };
+      const errorMessage = error.response?.data?.error || 'Network error';
+      return { success: false, error: errorMessage };
     }
   };
 
   const signup = async (userData) => {
     try {
-      const response = await fetch(`${API_BASE}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-      return response.ok 
-        ? { success: true } 
-        : { success: false, error: data.error };
+      await api.post('/api/auth/signup', userData);
+      return { success: true };
     } catch (error) {
-      return { success: false, error: 'Network error' };
+      const errorMessage = error.response?.data?.error || 'Network error';
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -76,18 +72,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   const apiRequest = async (url, options = {}) => {
-    const response = await fetch(`${API_BASE}${url}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Request failed');
-    return data;
+    try {
+      const response = await api({
+        url,
+        method: options.method || 'GET',
+        data: options.body,
+        headers: options.headers,
+        ...options,
+      });
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || 'Request failed';
+      throw new Error(errorMessage);
+    }
   };
 
   return (
