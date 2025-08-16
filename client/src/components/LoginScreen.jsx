@@ -25,6 +25,18 @@ const LoginScreen = () => {
     setLoading(false);
   };
 
+  const interStyle = { fontFamily: 'Inter, sans-serif' };
+  const customButtonStyle = {
+    backgroundColor: '#9CAF88',
+    color: 'white',
+  };
+  const customButtonHoverStyle = {
+    backgroundColor: '#8FA279', // slightly darker for hover effect
+  };
+  const customLinkStyle = {
+    color: '#9CAF88',
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4" style={{ fontFamily: 'Inter, sans-serif' }}>
       <div className="max-w-md w-full space-y-8">
