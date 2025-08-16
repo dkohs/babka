@@ -12,32 +12,26 @@ import LoginScreen from './components/LoginScreen';
 import SignupScreen from './components/SignupScreen';
 import { dummyEntries } from './utils/data';
 
-const AppContent = () => {
+const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
+
+const PublicRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  return !isAuthenticated ? children : <Navigate to="/" replace />;
+};
+
+const AppContent = () => {
+  const { isAuthenticated } = useAuth();
   const [entries, setEntries] = useState(dummyEntries);
   const [showNewEntry, setShowNewEntry] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <Router>
-        <Routes>
-          <Route path="/login" element={<LoginScreen />} />
-          <Route path="/signup" element={<SignupScreen />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </Router>
-    );
-  }
 
   const handleSaveEntry = (newEntry) => {
     setEntries([newEntry, ...entries]);
@@ -61,6 +55,7 @@ const AppContent = () => {
     setShowSearch(false);
   };
 
+  // Handle special states
   if (selectedEntry) {
     return (
       <EntryForm
@@ -93,34 +88,38 @@ const AppContent = () => {
   }
 
   return (
-    <Router>
-      <div style={{ fontFamily: 'Inter, sans-serif' }}>
-        <Routes>
-          <Route 
-            path="/" 
-            element={
-              <HomePage 
-                entries={entries} 
-                onEntryClick={handleEntryClick}
-                onSearchClick={() => setShowSearch(true)}
-              />
-            } 
-          />
-          <Route path="/stats" element={<StatsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/filler" element={<FillerPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-        <NavigationBar onPlusClick={() => setShowNewEntry(true)} />
-      </div>
-    </Router>
+    <div style={{ fontFamily: 'Inter, sans-serif' }}>
+      <Routes>
+        <Route path="/login" element={<PublicRoute><LoginScreen /></PublicRoute>} />
+        <Route path="/signup" element={<PublicRoute><SignupScreen /></PublicRoute>} />
+        
+        <Route path="/" element={
+          <ProtectedRoute>
+            <HomePage 
+              entries={entries} 
+              onEntryClick={handleEntryClick}
+              onSearchClick={() => setShowSearch(true)}
+            />
+          </ProtectedRoute>
+        } />
+        <Route path="/stats" element={<ProtectedRoute><StatsPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/filler" element={<ProtectedRoute><FillerPage /></ProtectedRoute>} />
+        
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+      
+      {isAuthenticated && (
+        <NavigationBar onPlusClick={() => setShowNewEntry(true)} onNavigate={() => {}} />
+      )}
+    </div>
   );
 };
 
-export const App = () => {
-  return (
-    <AuthProvider>
+export const App = () => (
+  <AuthProvider>
+    <Router>
       <AppContent />
-    </AuthProvider>
-  );
-};
+    </Router>
+  </AuthProvider>
+);

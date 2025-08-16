@@ -2,20 +2,21 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { User } = require("../db/models/usersModel");
-const { authenticate } = require("../middleware/auth")
-const router = express.Router();
+const { auth } = require("../middleware/auth");
 
-const secret = process.env.JWT_SECRET;
+const router = express.Router();
+const { JWT_SECRET } = process.env;
 
 router.post("/signup", async (req, res) => {
   try {
     const { first_name, last_name, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ error: "Email already in use" });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already in use" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const newUser = await User.create({
       first_name,
       last_name,
@@ -23,7 +24,7 @@ router.post("/signup", async (req, res) => {
       password: hashedPassword,
     });
 
-    res.status(201).json({ message: "User created", newUser });
+    res.status(201).json({ message: "User created", user: newUser });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -34,27 +35,29 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email }).select("+password");
-    if (!user) return res.status(400).json({ error: "Invalid email" });
+    if (!user || !await bcrypt.compare(password, user.password)) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Invalid password" });
-
-    const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
-
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
     res.json({ token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Get current user info
-router.get("/me", authenticate, async (req, res) => {
+router.get("/me", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select("-password");
+    const user = await User.findById(req.user.id).select("-password");
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-module.exports = {authRoutes: router};
+module.exports = { authRoutes: router };

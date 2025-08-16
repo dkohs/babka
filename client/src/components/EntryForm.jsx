@@ -1,119 +1,96 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import Button from './Button'
-import { formatDate } from '../utils/utils'
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/AuthContext';
 
-const EntryForm = ({ entry, onSave, onCancel, onDelete, isNew = false }) => {
-    const [title, setTitle] = useState(entry?.title || '');
-    const [content, setContent] = useState(entry?.content || '');
+const LoginScreen = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
-    const handleSave = async () => {
-        try {
-            console.log({
-                sentence: content
-            })
-            const response = await axios.post('/api/ml/infer', {
-                sentence: content
-            });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-            console.log('ML Analysis Data:', response.data);
+    const result = await login(email, password);
+    
+    if (!result.success) {
+      setError(result.error);
+    }
+    setLoading(false);
+  };
 
-        } catch (err) {
-            console.error('ML Analysis Error:', err);
-        }
-        // onSave(entryData);
-    };
-
-    const handleDelete = () => {
-        if (window.confirm('Are you sure you want to delete this entry?')) {
-            onDelete(entry);
-        }
-    };
-
-    return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: '#fff',
-            zIndex: 2000,
-            display: 'flex',
-            flexDirection: 'column'
-        }}>
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '20px 32px',
-                borderBottom: '1px solid #ccc',
-                backgroundColor: '#fff'
-            }}>
-                <Button variant="secondary" onClick={onCancel}>
-                    {isNew ? 'Cancel' : '← Back'}
-                </Button>
-                {isNew ? (
-                    <h3 style={{ fontFamily: 'Inter', fontWeight: 600, margin: 0 }}>
-                        New Entry
-                    </h3>
-                ) : null}
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <Button onClick={handleSave}>Save</Button>
-                    {!isNew && <Button variant="danger" onClick={handleDelete}>Delete</Button>}
-                </div>
-            </div>
-
-            <div style={{
-                flex: 1,
-                padding: '20px 32px',
-                display: 'flex',
-                flexDirection: 'column'
-            }}>
-                <p style={{
-                    color: '#666',
-                    fontSize: '14px',
-                    marginBottom: '20px',
-                    fontFamily: 'Inter',
-                }}>
-                    {formatDate(new Date(entry?.date || new Date()), 'EEEE, MMMM dd, yyyy')}
-                </p>
-
-                <input
-                    type="text"
-                    placeholder="Entry title (optional)..."
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    style={{
-                        border: 'none',
-                        outline: 'none',
-                        fontSize: '24px',
-                        fontWeight: '600',
-                        marginBottom: '20px',
-                        fontFamily: 'Inter, sans-serif',
-                        backgroundColor: 'transparent'
-                    }}
-                    autoFocus={isNew}
-                />
-
-                <textarea
-                    placeholder={isNew ? "What's on your mind today?" : "What's on your mind?"}
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    style={{
-                        flex: 1,
-                        border: 'none',
-                        outline: 'none',
-                        fontSize: '16px',
-                        fontFamily: 'Inter, sans-serif',
-                        resize: 'none',
-                        backgroundColor: 'transparent',
-                        lineHeight: '1.6'
-                    }}
-                />
-            </div>
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center bg-gray-50 px-4"
+      style={{ fontFamily: 'Inter, sans-serif' }}
+    >
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign in to your account
+          </h2>
         </div>
-    );
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Enter your email"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Enter your password"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-red-600 text-sm text-center">{error}</div>
+          )}
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
+
+          <div className="text-center">
+            <span className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <Link to="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+                Sign up
+              </Link>
+            </span>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 };
 
-export default EntryForm;
+export default LoginScreen;
