@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Header from './Header';
 import PeriodSelector from './PeriodSelector';
 import EmotionChart from './EmotionChart';
 
-const StatsPage = () => {
+export const StatsPage = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('day');
 
   const emotionDataSets = {
@@ -180,5 +180,3 @@ const StatsPage = () => {
     </div>
   );
 };
-
-export default StatsPage;

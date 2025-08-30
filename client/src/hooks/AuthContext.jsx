@@ -3,7 +3,6 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
-// Create axios instance with base configuration
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || '',
   headers: {
@@ -16,7 +15,6 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
-  // Set up axios interceptor to include auth token
   useEffect(() => {
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -57,6 +55,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (userData) => {
     try {
+      console.log(userData)
       await api.post('/api/auth/signup', userData);
       return { success: true };
     } catch (error) {

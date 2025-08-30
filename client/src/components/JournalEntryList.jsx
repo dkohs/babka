@@ -1,8 +1,7 @@
-import React from 'react';
 import JournalSection from './JournalSection';
 import { isToday, isWithinLast30Days, formatDate } from '../utils/utils';
 
-const JournalEntryList = ({ entries, onEntryClick }) => {
+export const JournalEntryList = ({ entries, onEntryClick }) => {
   const today = [];
   const last30Days = [];
   const older = {};
@@ -32,5 +31,3 @@ const JournalEntryList = ({ entries, onEntryClick }) => {
     </div>
   );
 };
-
-export default JournalEntryList;

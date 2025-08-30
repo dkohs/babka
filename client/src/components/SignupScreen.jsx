@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/AuthContext';
 
-const SignupScreen = () => {
+export const SignupScreen = () => {
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -136,5 +136,3 @@ const SignupScreen = () => {
     </div>
   );
 };
-
-export default SignupScreen;

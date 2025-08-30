@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/AuthContext';
 
-const LoginScreen = () => {
+export const EntryForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -92,5 +92,3 @@ const LoginScreen = () => {
     </div>
   );
 };
-
-export default LoginScreen;

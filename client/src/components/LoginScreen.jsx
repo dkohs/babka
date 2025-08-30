@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/AuthContext';
 
-const LoginScreen = () => {
+export const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,18 +23,6 @@ const LoginScreen = () => {
       setError(result.error);
     }
     setLoading(false);
-  };
-
-  const interStyle = { fontFamily: 'Inter, sans-serif' };
-  const customButtonStyle = {
-    backgroundColor: '#9CAF88',
-    color: 'white',
-  };
-  const customButtonHoverStyle = {
-    backgroundColor: '#8FA279', // slightly darker for hover effect
-  };
-  const customLinkStyle = {
-    color: '#9CAF88',
   };
 
   return (
@@ -92,5 +80,3 @@ const LoginScreen = () => {
     </div>
   );
 };
-
-export default LoginScreen;

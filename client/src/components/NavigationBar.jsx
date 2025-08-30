@@ -1,7 +1,6 @@
-import React from 'react';
 import Navig from '../asset/navig.svg'
 
-const NavigationBar = ({ currentPage, onNavigate, onPlusClick }) => {
+export const NavigationBar = ({ currentPage, onNavigate, onPlusClick }) => {
   const home = "data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpolyline points='9,22 9,12 15,12 15,22' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
   const stats = "data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M18 20V10M12 20V4M6 20V14' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
   const plus = "data:image/svg+xml,%3Csvg width='45' height='45' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10' fill='%239CAF88'/%3E%3Cpath d='M12 8V16M8 12H16' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
@@ -105,5 +104,3 @@ const NavigationBar = ({ currentPage, onNavigate, onPlusClick }) => {
     </div>
   );
 };
-
-export default NavigationBar;
