@@ -8,6 +8,7 @@ const router = express.Router();
 const { JWT_SECRET } = process.env;
 
 router.post("/signup", async (req, res) => {
+  console.log("req.body", req.body);
   try {
     const { first_name, last_name, email, password } = req.body;
 
@@ -35,11 +36,11 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email }).select("+password");
-    if (!user || !await bcrypt.compare(password, user.password)) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "7d" });
     res.json({ token });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -49,11 +50,11 @@ router.post("/login", async (req, res) => {
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-    
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });

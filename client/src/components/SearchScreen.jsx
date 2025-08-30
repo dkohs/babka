@@ -3,7 +3,7 @@ import Button from './Button';
 import JournalSection from './JournalSection';
 import { formatDate } from '../utils/utils';
 
-const SearchScreen = ({ entries, onClose, onEntryClick }) => {
+export const SearchScreen = ({ entries, onClose, onEntryClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);

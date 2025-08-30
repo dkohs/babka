@@ -8,7 +8,6 @@ const MODELS = {
   EMOTION: "j-hartmann/emotion-english-distilroberta-base",
   CLASSIFICATION: "facebook/bart-large-mnli",
 };
-
 const ANALYSIS_CATEGORIES = {
   MBTI: [
     "Extroversion",
@@ -31,7 +30,6 @@ const ANALYSIS_CATEGORIES = {
     "Creativity",
   ],
 };
-
 const POSITIVE_EMOTIONS = [
   "joy",
   "love",
